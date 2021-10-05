@@ -14,6 +14,9 @@ face_cards = ['ace', 'jack', 'queen', 'king']
 deck = []
 extension = 'png'
 
+hidden_card_name = []
+hidden_card_value = []
+
 for y in suits:
     for x in range(2, 11):
         name = 'images/{}-{}.{}'.format(str(x), y, extension)
@@ -47,103 +50,150 @@ frames()
 
 # add card dealer
 def deal_dealer():
-    global dealer_hand, print_num
+    global dealer_hand, dealer_num
     card_image = ImageTk.PhotoImage(Image.open(deck[0]).resize((180, 245), Image.ANTIALIAS))
     card_label = Label(dealer_frame, image=card_image, relief="raised")
     card_label.image = card_image
     card_label.pack(side="left")
     dealer_hand.append(deck.pop(0))
-    #print(dealer_hand)
+    # print(dealer_hand)
 
-    #split strings in hand to find integars using card_value dictionary
-    print_num = 0
-    for x in dealer_hand: #without the zero it gives 380
-        print_num += card_value[x.split('-')[0]]
+    # split strings in hand to find integars using card_value dictionary
+    dealer_num = 0
+    for x in dealer_hand:
+        dealer_num += card_value[x.split('-')[0]]
 
         if "images/ace" in x.split('-'):
             number_of_aces_d = x.split('-').count("images/ace")
-            if number_of_aces_d > 2 or print_num > 21:
-                print_num += -10
-                #print("Total hand value over 21. One or more Aces now worth 1 for dealer.")
+            if number_of_aces_d > 2 or dealer_num > 21:
+                dealer_num += -10
+                # print("Total hand value over 21. One or more Aces now worth 1 for dealer.")
 
-    dealer_label = Label(dealer_score, text="Dealer").grid(column=0,row=0)
-    num_label = Label(dealer_score, text=print_num).grid(column=0,row=1)
+    if len(dealer_hand) == 2:
+        dealer_num = dealer_num - hidden_num
+    '''disabled hidden value for testing'''
 
-deal_dealer()
+
+    print("new card total ", dealer_num)
+    dealer_label = Label(dealer_score, text="Dealer:").grid(column=0,row=0)
+    num_label = Label(dealer_score, text=dealer_num).grid(column=0,row=1)
+
+
+def hidden_dealer():
+    global dealer_hand, hidden_label, hidden_card_name, hidden_num
+    card_image = ImageTk.PhotoImage(Image.open(deck[0]).resize((180, 245), Image.ANTIALIAS))
+    hidden_label = Label(dealer_frame, image=card_image, relief="raised")
+    hidden_label.image = card_image
+    hidden_label.pack(side="left")
+    hidden_card_name = deck[0]
+    print(hidden_card_name)
+    dealer_hand.append(deck.pop(0))
+    # print(dealer_hand)
+
+    # split strings in hand to find integars using card_value dictionary
+    hidden_num = 0
+    for x in dealer_hand:
+        hidden_num += card_value[x.split('-')[0]]
+
+        if "images/ace" in x.split('-'):
+            number_of_aces_d = x.split('-').count("images/ace")
+            if number_of_aces_d > 2 or hidden_num > 21:
+                hidden_num += -10
+                # print("Total hand value over 21. One or more Aces now worth 1 for dealer.")
+
+    print("hidden ", hidden_num)
+
+    card_art = ImageTk.PhotoImage(Image.open("images/card-back.png").resize((180, 245), Image.ANTIALIAS))
+    hidden_label.configure(image=card_art)
+    hidden_label.image = card_art
+
+def reveal_card():
+    global dealer_num
+    num_label = Label(dealer_score, text=dealer_num).grid(column=0, row=1)
+    print("reveal ", dealer_num)
+    card_art = ImageTk.PhotoImage(Image.open(hidden_card_name).resize((180, 245), Image.ANTIALIAS))
+    hidden_label.configure(image=card_art)
+    hidden_label.image = card_art
+
+hidden_dealer()
 deal_dealer()
 
 # player hand
 def deal_player():
-    global player_hand, print_num2
+    global player_hand, player_num
     card_image = ImageTk.PhotoImage(Image.open(deck[0]).resize((180, 245), Image.ANTIALIAS))
-    card_label = Label(player_frame, image=card_image, relief="raised")
-    card_label.image = card_image
-    card_label.pack(side="left")
+    player_label = Label(player_frame, image=card_image, relief="raised")
+    player_label.image = card_image
+    player_label.pack(side="left")
     player_hand.append(deck.pop(0))
-    #print(player_hand)
+    # print(player_hand)
 
-    print_num2 = 0
+    player_num = 0
     for x in player_hand: #without the zero it gives 380
-        print_num2 += card_value[x.split('-')[0]]
+        player_num += card_value[x.split('-')[0]]
 
         if "images/ace" in x.split('-'):
             number_of_aces_p = x.split('-').count("images/ace")
-            if number_of_aces_p > 2 or print_num2 > 21:
-                print_num2 += -10
-                #print("Total hand value over 21. One or more Aces now worth 1 for player")
+            if number_of_aces_p > 2 or player_num > 21:
+                player_num += -10
+                # print("Total hand value over 21. One or more Aces now worth 1 for player")
 
-    player_label = Label(player_score, text="Player").grid(column=0, row=0)
-    num_label = Label(player_score, text=print_num2).grid(column=0,row=1)
+    player_label = Label(player_score, text="Player:").grid(column=0, row=0)
+    num_label = Label(player_score, text=player_num).grid(column=0,row=1)
+
+
 deal_player()
 deal_player()
-#print(print_num2)
+#print(player_num)
 
 def check_winner():
-    global print_num, print_num2
-    if (print_num) == 21 and (print_num2) == 21:
+    global dealer_num, player_num
+    if (dealer_num) == 21 and (player_num) == 21:
         Label(root, text="Dealer and player have Blackjack. DRAW.", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-    elif (print_num == 21) and (print_num2 != 21):
+    elif (dealer_num == 21) and (player_num != 21):
         Label(root, text="Dealer has Blackjack! House wins!", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-    elif (print_num != 21) and (print_num2 == 21):
+    elif (dealer_num != 21) and (player_num == 21):
         Label(root, text="Player has Blackjack! You win!", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-    elif (print_num > 21) and (print_num2 < 21):
+    elif (dealer_num > 21) and (player_num < 21):
         Label(root, text="Dealer BUST! You win!", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-    elif (print_num < 21) and (print_num2 > 21):  # player bust condition might move to append
+    elif (dealer_num < 21) and (player_num > 21):  # player bust condition might move to append
         Label(root, text="Dealer Wins!", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-    elif (print_num > 21) and (print_num2 > 21):
+    elif (dealer_num > 21) and (player_num > 21):
         Label(root, text="Both are bust!", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-    elif (print_num < 21) and (print_num2 < 21):
-        if print_num > print_num2:
+    elif (dealer_num < 21) and (player_num < 21):
+        if dealer_num > player_num:
             Label(root, text="Dealer is closer to 21. House Wins", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-        elif print_num < print_num2:
+        elif dealer_num < player_num:
             Label(root, text="You are closer to 21. YOU WIN!", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
-        elif print_num == print_num2:
+        elif dealer_num == player_num:
             Label(root, text="Both players are equal and under 21. DRAW.", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
     else:
         Label(root, text="Error in results.", font=('Helvetica', 45, 'bold')).grid(row=3, column=1)
 
 def stay():
+    reveal_card()
     hit_button.config(state=DISABLED)
-    while print_num <= 16:
+    while dealer_num <= 16:
         deal_dealer()
     check_winner()
 
 def player_hit():
-    if print_num2 < 21:
+    if player_num < 21:
         deal_player()
-        #print(print_num2)
-        if print_num2 >=21:
+        #print(player_num)
+        if player_num >=21:
             stay()
     else:
         stay()
 
 def new_game():
-    global print_num, print_num2, dealer_hand, player_hand, deck
-    print_num = 0
-    num_label = Label(dealer_score, text=print_num).grid(column=0, row=1)
+    global dealer_num, player_num, dealer_hand, player_hand, deck, hidden_num
+    dealer_num = 0
+    hidden_num = 0
+    num_label = Label(dealer_score, text=dealer_num).grid(column=0, row=1)
     dealer_frame.destroy()
-    print_num2 = 0
-    num_label = Label(player_score, text=print_num2).grid(column=0, row=1)
+    player_num = 0
+    num_label = Label(player_score, text=player_num).grid(column=0, row=1)
     player_frame.destroy()
     hit_button.config(state=NORMAL)
     for label in root.grid_slaves():
@@ -169,7 +219,7 @@ def new_game():
             deck.append(name)
     random.shuffle(deck)
 
-    deal_dealer()
+    hidden_dealer()
     deal_dealer()
 
     deal_player()
